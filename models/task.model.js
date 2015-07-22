@@ -15,25 +15,32 @@ var TaskSchema = new Schema({
 //virtuals
 
 TaskSchema.virtual('timeRemaining').get(function() {
-  
+  var now = new Date();
+  if (!this.due) return Infinity;
+  else return this.due - now;
 })
 
 TaskSchema.virtual('overdue').get(function() {
-
+  var now = new Date();
+  return this.due > now
 })
 
 //methods
 
 TaskSchema.methods.addChild = function(params) {
- 
+	params.parent = this._id;
+	return Task.create(params);
 }
 
 TaskSchema.methods.getChildren = function() {
-
+	return Task.find({parent: this._id}).exec();
 }
 
 TaskSchema.methods.getSiblings = function() {
-
+	return Task.find({
+		parent: this.parent,
+		name: {$not: this.name}
+	}).exec();
 }
 
 Task = mongoose.model('Task', TaskSchema);
